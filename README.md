@@ -4,7 +4,7 @@ This project uses Artificial Intelligence (AI) to "dream up" Minecraft skins. It
 ## Installation
 Please install Python 3.7.4 before continuing.
 
-    $ git clone https://github.com/tombailey/Keras-GAN.git
+    $ git clone https://github.com/tombailey/Minecraft-Skin-Generator.git
     $ pip3 install -r requirements.txt
 
 ## Training
