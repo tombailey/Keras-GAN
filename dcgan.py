@@ -1,11 +1,10 @@
 from __future__ import print_function, division
 
-from keras.datasets import mnist
 from keras.layers import Input, Dense, Reshape, Flatten, Dropout
 from keras.layers import BatchNormalization, Activation, ZeroPadding2D
 from keras.layers.advanced_activations import LeakyReLU
 from keras.layers.convolutional import UpSampling2D, Conv2D
-from keras.models import Sequential, Model
+from keras.models import Sequential, Model, load_model
 from keras.optimizers import Adam
 
 import matplotlib.pyplot as plt
@@ -14,11 +13,12 @@ import sys
 
 import numpy as np
 
-class LSGAN():
+class DCGAN():
     def __init__(self):
-        self.img_rows = 28
-        self.img_cols = 28
-        self.channels = 1
+        # Input shape
+        self.img_rows = 64
+        self.img_cols = 64
+        self.channels = 4
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
         self.latent_dim = 100
 
@@ -26,44 +26,47 @@ class LSGAN():
 
         # Build and compile the discriminator
         self.discriminator = self.build_discriminator()
-        self.discriminator.compile(loss='mse',
+        self.discriminator.compile(loss='binary_crossentropy',
             optimizer=optimizer,
             metrics=['accuracy'])
 
         # Build the generator
         self.generator = self.build_generator()
 
-        # The generator takes noise as input and generated imgs
+        # The generator takes noise as input and generates imgs
         z = Input(shape=(self.latent_dim,))
         img = self.generator(z)
 
         # For the combined model we will only train the generator
         self.discriminator.trainable = False
 
-        # The valid takes generated images as input and determines validity
+        # The discriminator takes generated images as input and determines validity
         valid = self.discriminator(img)
 
         # The combined model  (stacked generator and discriminator)
-        # Trains generator to fool discriminator
+        # Trains the generator to fool the discriminator
         self.combined = Model(z, valid)
-        # (!!!) Optimize w.r.t. MSE loss instead of crossentropy
-        self.combined.compile(loss='mse', optimizer=optimizer)
+        self.combined.compile(loss='binary_crossentropy', optimizer=optimizer)
 
     def build_generator(self):
-
         model = Sequential()
 
-        model.add(Dense(256, input_dim=self.latent_dim))
-        model.add(LeakyReLU(alpha=0.2))
+        model.add(Dense(128 * 8 * 8, activation="relu", input_dim=self.latent_dim))
+        model.add(Reshape((8, 8, 128)))
+        model.add(UpSampling2D())
+        model.add(Conv2D(128, kernel_size=3, padding="same"))
         model.add(BatchNormalization(momentum=0.8))
-        model.add(Dense(512))
-        model.add(LeakyReLU(alpha=0.2))
+        model.add(Activation("relu"))
+        model.add(UpSampling2D())
+        model.add(Conv2D(64, kernel_size=3, padding="same"))
         model.add(BatchNormalization(momentum=0.8))
-        model.add(Dense(1024))
-        model.add(LeakyReLU(alpha=0.2))
+        model.add(Activation("relu"))
+        model.add(UpSampling2D())
+        model.add(Conv2D(32, kernel_size=3, padding="same"))
         model.add(BatchNormalization(momentum=0.8))
-        model.add(Dense(np.prod(self.img_shape), activation='tanh'))
-        model.add(Reshape(self.img_shape))
+        model.add(Activation("relu"))
+        model.add(Conv2D(self.channels, kernel_size=3, padding="same"))
+        model.add(Activation("tanh"))
 
         model.summary()
 
@@ -73,16 +76,27 @@ class LSGAN():
         return Model(noise, img)
 
     def build_discriminator(self):
-
         model = Sequential()
 
-        model.add(Flatten(input_shape=self.img_shape))
-        model.add(Dense(512))
+        model.add(Conv2D(32, kernel_size=3, strides=2, input_shape=self.img_shape, padding="same"))
         model.add(LeakyReLU(alpha=0.2))
-        model.add(Dense(256))
+        model.add(Dropout(0.25))
+        model.add(Conv2D(64, kernel_size=3, strides=2, padding="same"))
+        model.add(ZeroPadding2D(padding=((0,1),(0,1))))
+        model.add(BatchNormalization(momentum=0.8))
         model.add(LeakyReLU(alpha=0.2))
-        # (!!!) No softmax
-        model.add(Dense(1))
+        model.add(Dropout(0.25))
+        model.add(Conv2D(128, kernel_size=3, strides=2, padding="same"))
+        model.add(BatchNormalization(momentum=0.8))
+        model.add(LeakyReLU(alpha=0.2))
+        model.add(Dropout(0.25))
+        model.add(Conv2D(256, kernel_size=3, strides=1, padding="same"))
+        model.add(BatchNormalization(momentum=0.8))
+        model.add(LeakyReLU(alpha=0.2))
+        model.add(Dropout(0.25))
+        model.add(Flatten())
+        model.add(Dense(1, activation='sigmoid'))
+
         model.summary()
 
         img = Input(shape=self.img_shape)
@@ -90,14 +104,9 @@ class LSGAN():
 
         return Model(img, validity)
 
-    def train(self, epochs, batch_size=128, sample_interval=50):
-
-        # Load the dataset
-        (X_train, _), (_, _) = mnist.load_data()
-
+    def train(self, data, epochs, batch_size=128, save_interval=50):
         # Rescale -1 to 1
-        X_train = (X_train.astype(np.float32) - 127.5) / 127.5
-        X_train = np.expand_dims(X_train, axis=3)
+        X_train = data / 127.5 - 1.
 
         # Adversarial ground truths
         valid = np.ones((batch_size, 1))
@@ -109,36 +118,35 @@ class LSGAN():
             #  Train Discriminator
             # ---------------------
 
-            # Select a random batch of images
+            # Select a random half of images
             idx = np.random.randint(0, X_train.shape[0], batch_size)
             imgs = X_train[idx]
 
-            # Sample noise as generator input
+            # Sample noise and generate a batch of new images
             noise = np.random.normal(0, 1, (batch_size, self.latent_dim))
-
-            # Generate a batch of new images
             gen_imgs = self.generator.predict(noise)
 
-            # Train the discriminator
+            # Train the discriminator (real classified as ones and generated as zeros)
             d_loss_real = self.discriminator.train_on_batch(imgs, valid)
             d_loss_fake = self.discriminator.train_on_batch(gen_imgs, fake)
             d_loss = 0.5 * np.add(d_loss_real, d_loss_fake)
-
 
             # ---------------------
             #  Train Generator
             # ---------------------
 
+            # Train the generator (wants discriminator to mistake images as real)
             g_loss = self.combined.train_on_batch(noise, valid)
 
             # Plot the progress
             print ("%d [D loss: %f, acc.: %.2f%%] [G loss: %f]" % (epoch, d_loss[0], 100*d_loss[1], g_loss))
 
             # If at save interval => save generated image samples
-            if epoch % sample_interval == 0:
-                self.sample_images(epoch)
+            if epoch % save_interval == 0:
+                self.save_imgs(epoch)
+        self.save_imgs(epochs)
 
-    def sample_images(self, epoch):
+    def save_imgs(self, epoch):
         r, c = 5, 5
         noise = np.random.normal(0, 1, (r * c, self.latent_dim))
         gen_imgs = self.generator.predict(noise)
@@ -150,13 +158,21 @@ class LSGAN():
         cnt = 0
         for i in range(r):
             for j in range(c):
-                axs[i,j].imshow(gen_imgs[cnt, :,:,0], cmap='gray')
+                axs[i,j].imshow(gen_imgs[cnt])
                 axs[i,j].axis('off')
                 cnt += 1
-        fig.savefig("images/mnist_%d.png" % epoch)
+        fig.savefig("images/generated/%d.png" % epoch)
         plt.close()
 
+    def generate(self, saveTo):
+        noise = np.random.normal(0, 1, (1, self.latent_dim))
+        gen_imgs = self.generator.predict(noise)
+        gen_imgs = 0.5 * gen_imgs + 0.5
+        gen_imgs = gen_imgs.clip(0, 1)
+        plt.imsave(saveTo, gen_imgs[0])
 
-if __name__ == '__main__':
-    gan = LSGAN()
-    gan.train(epochs=30000, batch_size=32, sample_interval=200)
+    def saveWeights(self, toWhere):
+        self.generator.save("%s/generator.h5" % toWhere)
+
+    def loadWeights(self, fromWhere):
+        self.generator = load_model("%s/generator.h5" % fromWhere)
