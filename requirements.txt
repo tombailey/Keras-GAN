@@ -9,4 +9,4 @@ pillow
 scikit-image
 #gzip
 #pickle
-tensorflow==1.14
+tensorflow==2.5.1
