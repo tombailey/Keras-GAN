@@ -1,30 +1,28 @@
 ## Minecraft Skin Generator
-This project uses Artificial Intelligence (AI) to "dream up" Minecraft skins. It uses a Deep Convolutional Generative Adversarial Network (DCGAN) trained on existing Minecraft skins to "understand" what they look like and then create its own.
+This project uses Artificial Intelligence (AI) to "dream up" Minecraft skins. It is trained on existing Minecraft skins to "understand" what they look like so it can create its own.
 
 ## Installation
 Please install Python 3.7.4 before continuing.
 
     $ git clone https://github.com/tombailey/Minecraft-Skin-Generator.git
-    $ pip3 install -r requirements.txt
+    $ pip3 install -r requirements.txt -f https://download.pytorch.org/whl/cu113/torch_stable.html
 
 ## Training
-Please gather some existing Minecraft skins for training. Place them as PNG files in ```./images```.
+Please gather some existing Minecraft skins for training. Place them as PNG files in `./data`.
 
-    $ python3 main.py
+    $ python3 main.py --mode train --dataset data
 
-Note, if you are able to, you might want to use the GPU variant of TensorFlow to speed training up.
+You might want to use `trim.py` and `deduplicate.py` to clean the data before training.
 
-During training, you might want to periodically check ```./images/generated``` to see how the model is performing.
+During training, you might want to periodically check `./samples` to see how the model is performing.
 
 ## Generating skins
-Once the model has been trained the weights for the generator will be saved to ```./saved_model/generator.h5``` so they can be used to generate skins. You can run the same script which will detect and use the saved weights to generate skins.
+Once the models have been trained they will be saved to `./discriminator.model` and `./generator.model` so they can be used to generate skins. You can run the same script to generate skins.
 
-    $ python3 main.py
+    $ python3 main.py --mode generate --samples results
 
-Check for the generated skin at ```./images/generated/example.png```.
+Check for the generated skins at `./results/*.png`.
 
 ## Credit   
 
-The DCGAN implementation is based on eriklindernoren's implementation of a DCGAN. This repository is a fork of [eriklindernoren's Keras-GAN repository](https://github.com/eriklindernoren/Keras-GAN), in which you can find the original implementation.
-
-eriklindernoren's implementation is based on the following [paper](https://arxiv.org/abs/1511.06434).
+The GAN used to generate images is based heavily on [eriklindernoren's WGAN implementation](https://github.com/eriklindernoren/PyTorch-GAN/blob/master/implementations/wgan/wgan.py).
