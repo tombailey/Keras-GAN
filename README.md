@@ -2,7 +2,7 @@
 This project uses Artificial Intelligence (AI) to "dream up" Minecraft skins. It is trained on existing Minecraft skins to "understand" what they look like so it can create its own.
 
 ## Installation
-Please install Python 3.7.4 before continuing.
+Please install Python 3.8 before continuing.
 
     $ git clone https://github.com/tombailey/Minecraft-Skin-Generator.git
     $ pip3 install -r requirements.txt -f https://download.pytorch.org/whl/cu113/torch_stable.html
