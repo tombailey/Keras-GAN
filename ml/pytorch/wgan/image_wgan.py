@@ -22,8 +22,8 @@ class ImageWgan:
         generator_saved_model: str or None = None,
         discriminator_saved_model: str or None = None
     ):
-        self.generator = Generator(image_shape, latent_space_dimension, generator_saved_model)
-        self.discriminator = Discriminator(image_shape, discriminator_saved_model)
+        self.generator = Generator(image_shape, latent_space_dimension, use_cuda, generator_saved_model)
+        self.discriminator = Discriminator(image_shape, use_cuda, discriminator_saved_model)
 
         self.image_shape = image_shape
         self.latent_space_dimension = latent_space_dimension

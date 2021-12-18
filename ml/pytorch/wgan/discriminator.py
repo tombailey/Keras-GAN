@@ -8,6 +8,7 @@ class Discriminator(nn.Module):
     def __init__(
         self,
         image_shape: (int, int, int),
+        use_cuda: bool = False,
         saved_model: str or None = None
     ):
         super(Discriminator, self).__init__()
@@ -20,7 +21,12 @@ class Discriminator(nn.Module):
             nn.Linear(256, 1),
         )
         if saved_model is not None:
-            self.model.load_state_dict(torch.load(saved_model))
+            self.model.load_state_dict(
+                torch.load(
+                    saved_model,
+                    map_location=torch.device('cuda' if use_cuda else 'cpu')
+                )
+            )
 
     def forward(self, img):
         img_flat = img.view(img.shape[0], -1)

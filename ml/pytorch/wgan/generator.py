@@ -9,6 +9,7 @@ class Generator(nn.Module):
         self,
         image_shape: (int, int, int),
         latent_space_dimension: int,
+        use_cuda: bool = False,
         saved_model: str or None = None
     ):
         super(Generator, self).__init__()
@@ -31,7 +32,12 @@ class Generator(nn.Module):
             nn.Tanh()
         )
         if saved_model is not None:
-            self.model.load_state_dict(torch.load(saved_model))
+            self.model.load_state_dict(
+                torch.load(
+                    saved_model,
+                    map_location=torch.device('cuda' if use_cuda else 'cpu')
+                )
+            )
 
     def forward(self, z):
         img = self.model(z)
