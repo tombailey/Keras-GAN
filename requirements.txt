@@ -4,4 +4,4 @@ torchaudio===0.10.0+cu113
 Pillow===9.0.1
 numpy==1.21.4
 Flask==2.0.2
-waitress==2.0.0
+waitress==2.1.1
