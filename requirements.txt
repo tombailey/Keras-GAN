@@ -2,6 +2,6 @@ torch==1.10.0+cu113
 torchvision==0.11.1+cu113
 torchaudio===0.10.0+cu113
 Pillow===9.0.1
-numpy==1.21.4
+numpy==1.22.0
 Flask==2.0.2
 waitress==2.1.2
