@@ -31,7 +31,7 @@ def init():
     )
     if mode == 'train':
         image_wgan.train(
-            epochs=opt.epoch,
+            epochs=opt.epochs,
             image_dataset=ImageDataset(dataset_folder),
             sample_folder=generated_samples_folder,
             generator_save_file=generator_saved_model,
