@@ -42,7 +42,7 @@ def init():
             sample_folder=generated_samples_folder
         )
     else:
-        raise ValueError('Mode {mode} not recognized')
+        raise ValueError(f'Mode {mode} not recognized')
 
 
 if __name__ == '__main__':
