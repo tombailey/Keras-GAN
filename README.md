@@ -10,7 +10,7 @@ Please install Python 3.8 before continuing.
 ## Training
 Please gather some existing Minecraft skins for training. Place them as PNG files in `./data`.
 
-    $ python3 main.py --mode train --dataset data
+    $ python3 main.py --mode train --model wgandiv --dataset data
 
 You might want to use `trim.py` and `deduplicate.py` to clean the data before training.
 
@@ -19,7 +19,7 @@ During training, you might want to periodically check `./samples` to see how the
 ## Generating skins
 Once the models have been trained they will be saved to `./discriminator.model` and `./generator.model` so they can be used to generate skins. You can run the same script to generate skins.
 
-    $ python3 main.py --mode generate --samples results
+    $ python3 main.py --mode generate --model wgandiv --samples results
 
 Check for the generated skins at `./results/*.png`.
 
