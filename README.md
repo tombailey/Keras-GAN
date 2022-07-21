@@ -16,6 +16,18 @@ You might want to use `trim.py` and `deduplicate.py` to clean the data before tr
 
 During training, you might want to periodically check `./samples` to see how the model is performing.
 
+If you want to visualize the loss, save stdout to a log file:
+
+    $ python3 main.py --mode train --model wgandiv --dataset data > stdout.log
+
+Then parse the log file and create a csv file with the loss data:
+
+    $ python3 parse_loss.py stdout.log loss.csv
+
+Finally, visualize the loss over time:
+
+    $ python3 visualize_loss.py loss.csv
+
 ## Generating skins
 Once the models have been trained they will be saved to `./discriminator.model` and `./generator.model` so they can be used to generate skins. You can run the same script to generate skins.
 
