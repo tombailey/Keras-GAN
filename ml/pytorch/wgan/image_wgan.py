@@ -114,6 +114,4 @@ class ImageWgan:
         Tensor = torch.cuda.FloatTensor if self.use_cuda else torch.FloatTensor
         z = Variable(Tensor(np.random.normal(0, 1, (self.image_shape[0], self.latent_space_dimension))))
         gen_imgs = self.generator(z)
-        generator_loss = -torch.mean(self.discriminator(gen_imgs))
-        generator_loss.backward()
         save_image(gen_imgs.data[:25], f'{sample_folder}/generated.png', nrow=5, normalize=True)
