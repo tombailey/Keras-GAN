@@ -3,11 +3,14 @@ from os.path import exists
 
 from ml.pytorch.image_dataset import ImageDataset
 from ml.pytorch.wgan.image_wgan import ImageWgan
+from ml.pytorch.wgan_gp.image_wgan import ImageWgan as ImageWganGP
+from ml.pytorch.wgan_div.image_wgan import ImageWgan as ImageWganDiv
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--epochs', type=int, default=50, help='number of epochs for training')
+parser.add_argument('--epochs', type=int, default=10, help='number of epochs for training')
 parser.add_argument('--dataset', type=str, default='data', help='a folder containing the image dataset')
+parser.add_argument('--model', type=str, default='wgandiv', help='"wgan" or "wgangp" or "wgandiv"')
 parser.add_argument('--mode', type=str, default='generate', help='"train" or "generate"')
 parser.add_argument('--samples', type=str, default='samples', help='a folder to store samples')
 parser.add_argument('--discriminator', type=str, default='discriminator.model', help='a file for loading/saving the discriminator')
@@ -22,15 +25,23 @@ def init():
     generator_saved_model = opt.generator
 
     mode = opt.mode
-    image_wgan = ImageWgan(
+
+    models = {
+        "wgan": ImageWgan,
+        "wgangp": ImageWganGP,
+        "wgandiv": ImageWganDiv,
+    }
+    if opt.model not in models:
+        raise ValueError(f'Mode {opt.model} not recognized')
+
+    model = models[opt.model](
         image_shape=(4, 64, 64),
-        latent_space_dimension=100,
         use_cuda=True,
         generator_saved_model=generator_saved_model if exists(generator_saved_model) else None,
         discriminator_saved_model=discriminator_saved_model if exists(discriminator_saved_model) else None
     )
     if mode == 'train':
-        image_wgan.train(
+        model.train(
             epochs=opt.epochs,
             image_dataset=ImageDataset(dataset_folder),
             sample_folder=generated_samples_folder,
@@ -38,7 +49,7 @@ def init():
             discriminator_save_file=discriminator_saved_model
         )
     elif mode == 'generate':
-        image_wgan.generate(
+        model.generate(
             sample_folder=generated_samples_folder
         )
     else:
