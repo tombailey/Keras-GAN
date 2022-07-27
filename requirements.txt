@@ -5,3 +5,6 @@ Pillow===9.0.1
 numpy==1.22.0
 Flask==2.0.2
 waitress==2.1.2
+accelerate==0.11.0
+datasets==2.3.2
+diffusers==0.0.1

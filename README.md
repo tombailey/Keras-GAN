@@ -6,23 +6,24 @@ Please install Python 3.8 before continuing.
 
     $ git clone https://github.com/tombailey/Minecraft-Skin-Generator.git
     $ pip3 install -r requirements.txt -f https://download.pytorch.org/whl/cu113/torch_stable.html
+    $ pip install git+https://github.com/huggingface/diffusers.git#egg=diffusers[training]
 
 ## Training
 Please gather some existing Minecraft skins for training. Place them as PNG files in `./data`.
 
-    $ python3 main.py --mode train --dataset data
+    $ python3 main.py --mode train --dataset data --epochs 10
 
 You might want to use `trim.py` and `deduplicate.py` to clean the data before training.
 
-During training, you might want to periodically check `./samples` to see how the model is performing.
+During training, you might want to periodically check `./output//samples` to see how the model is performing.
 
 ## Generating skins
-Once the models have been trained they will be saved to `./discriminator.model` and `./generator.model` so they can be used to generate skins. You can run the same script to generate skins.
+Once the model has been trained it will be saved to `./output/unet` so it can be used to generate skins. You can run the same script to generate skins.
 
-    $ python3 main.py --mode generate --samples results
+    $ python3 main.py --mode generate
 
-Check for the generated skins at `./results/*.png`.
+Check for the generated skins at `./output/generated-*.png`.
 
 ## Credit   
 
-The GAN used to generate images is based heavily on [eriklindernoren's WGAN implementation](https://github.com/eriklindernoren/PyTorch-GAN/blob/master/implementations/wgan/wgan.py).
+The diffusion model used to generate images is based heavily on [Huggingface's DDPM notebook](https://github.com/huggingface/notebooks/blob/8392fcc5d61396e39159c9f582c131599a48579b/diffusers/training_example.ipynb).
