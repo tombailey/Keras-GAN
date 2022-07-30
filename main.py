@@ -19,10 +19,15 @@ def init():
         saved_output_folder=path.join(opt.output, 'unet')
     )
     if mode == 'train':
+        # you can use this callback to upload new checkpoints to cloud storage
+        def on_checkpoint_saved(epoch, file):
+            print(f'A new checkpoint ({epoch}) was saved at {file}')
+
         model.train(
             dataset_folder=dataset_folder,
             epochs=opt.epochs,
-            output_folder=opt.output
+            output_folder=opt.output,
+            on_checkpoint_saved=on_checkpoint_saved
         )
     elif mode == 'generate':
         [

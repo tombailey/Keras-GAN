@@ -106,7 +106,8 @@ class ImageDiffusion:
         lr_warmup_steps: int = 500,
         output_folder: str = 'output',
         save_model_interval=1,
-        save_image_interval=1
+        save_image_interval=1,
+        on_checkpoint_saved: type(lambda epoch, checkpoint_file: None) = (lambda epoch, file: None)
     ):
         dataset = load_dataset(dataset_folder, data_files={"train": f'*.png'})["train"]
 
@@ -137,7 +138,8 @@ class ImageDiffusion:
             evaluating_batch_size,
             output_folder,
             save_model_interval,
-            save_image_interval
+            save_image_interval,
+            on_checkpoint_saved
         )
         notebook_launcher(self.training_loop, args, num_processes=1)
 
@@ -152,7 +154,8 @@ class ImageDiffusion:
         evaluating_batch_size: int,
         output_folder: str = 'output',
         save_model_interval=1,
-        save_image_interval=1
+        save_image_interval=1,
+        on_checkpoint_saved: type(lambda epoch, checkpoint_file: None) = (lambda epoch, file: None)
     ):
         # Initialize accelerator and tensorboard logging
         accelerator = Accelerator(
@@ -219,6 +222,8 @@ class ImageDiffusion:
 
                 if (epoch + 1) % save_model_interval == 0 or epoch == epochs - 1:
                     pipeline.save_pretrained(output_folder)
+                    unet_model_file = path.join(output_folder, 'unet', 'diffusion_pytorch_model.bin')
+                    on_checkpoint_saved(epoch + 1, unet_model_file)
 
     def generate(
         self,
