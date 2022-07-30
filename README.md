@@ -6,7 +6,6 @@ Please install Python 3.8 before continuing.
 
     $ git clone https://github.com/tombailey/Minecraft-Skin-Generator.git
     $ pip3 install -r requirements.txt -f https://download.pytorch.org/whl/cu113/torch_stable.html
-    $ pip install git+https://github.com/huggingface/diffusers.git#egg=diffusers[training]
 
 ## Training
 Please gather some existing Minecraft skins for training. Place them as PNG files in `./data`.
