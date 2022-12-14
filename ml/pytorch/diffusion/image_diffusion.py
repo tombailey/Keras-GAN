@@ -46,7 +46,7 @@ def evaluate(
     images = pipeline(
         batch_size=evaluating_batch_size,
         generator=torch.manual_seed(seed),
-    )["sample"]
+    )["images"]
 
     # Make a grid out of the images
     image_grid = make_grid(images, rows=4, cols=4)
@@ -61,12 +61,14 @@ class ImageDiffusion:
     def __init__(
         self,
         image_shape: (int, int, int) = (64, 64, 4),
-        saved_output_folder: str or None = None
+        saved_output_folder: str or None = None,
+        use_cuda: bool = torch.cuda.is_available()
     ):
         if not image_shape[0] == image_shape[1]:
             raise ValueError("Width and height of image shape should match.")
 
         self.image_size = image_shape[0]
+        self.use_cuda = use_cuda
 
         if path.exists(saved_output_folder):
             self.model = UNet2DModel.from_pretrained(saved_output_folder)
@@ -94,7 +96,10 @@ class ImageDiffusion:
                     "UpBlock2D"
                 )
             )
-        self.noise_scheduler = DDPMScheduler(num_train_timesteps=1000, tensor_format="pt")
+        self.noise_scheduler = DDPMScheduler(
+            num_train_timesteps=1000,
+            prediction_type="epsilon"
+        )
 
     def train(
         self,
@@ -214,7 +219,9 @@ class ImageDiffusion:
 
             # After each epoch you optionally sample some demo images with evaluate() and save the model
             if accelerator.is_main_process:
-                pipeline = DDPMPipeline(unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
+                pipeline = DDPMPipeline(unet=accelerator.unwrap_model(model), scheduler=noise_scheduler).to("cuda")
+                if self.use_cuda:
+                    pipeline = pipeline.to('cuda')
 
                 if (epoch + 1) % save_image_interval == 0 or epoch == epochs - 1:
                     seed = 0
@@ -230,7 +237,9 @@ class ImageDiffusion:
         size=1
     ) -> List[Image.Image]:
         pipeline = DDPMPipeline(unet=self.model, scheduler=self.noise_scheduler)
+        if self.use_cuda:
+            pipeline = pipeline.to('cuda')
         return pipeline(
             batch_size=size,
             generator=torch.manual_seed(torch.seed()),
-        )["sample"]
+        )['images']
