@@ -8,5 +8,8 @@ preload
 data
 results
 samples
+samples-*
+output
+output-*
 
 *.model
