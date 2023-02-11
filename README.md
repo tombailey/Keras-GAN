@@ -1,6 +1,10 @@
 ## Minecraft Skin Generator
 This project uses Artificial Intelligence (AI) to "dream up" Minecraft skins. It is trained on existing Minecraft skins to "understand" what they look like so it can create its own.
 
+## New model
+
+The main branch has been updated to use a diffusion based model instead of a wgan model. The new model results in higher quality skins but requires substantially more resources. A GPU with enough VRAM for your dataset is recommended. If you don't have access to hardware like that, you can still use the older wgan model with the [wgan branch](https://github.com/tombailey/Minecraft-Skin-Generator/tree/wgan).
+
 ## Installation
 Please install Python 3.9 before continuing.
 
