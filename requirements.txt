@@ -8,3 +8,4 @@ waitress==2.1.2
 accelerate==0.11.0
 datasets==2.3.2
 diffusers==0.10.2
+tensorboard==2.12.0
