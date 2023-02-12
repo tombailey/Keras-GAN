@@ -14,6 +14,10 @@ def init():
 
 def trim_skin(file):
     image = Image.open(file).convert('RGBA')
+    if image.size[1] != 64:
+        resized = Image.new(mode='RGBA', size=(64, 64))
+        resized.paste(image)
+        image = resized
     trim_areas = [
         {
             'x': {
