@@ -4,7 +4,7 @@ from os import path
 from ml.pytorch.diffusion.image_diffusion import ImageDiffusion
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--epochs', type=int, default=20, help='number of epochs for training')
+parser.add_argument('--training_steps', type=int, default=200000, help='number of training steps')
 parser.add_argument('--dataset', type=str, default='data', help='a folder containing the image dataset')
 parser.add_argument('--mode', type=str, default='generate', help='"train" or "generate"')
 parser.add_argument('--output', type=str, default='output', help='a folder to save the outputs (logs, model, samples)')
@@ -12,22 +12,14 @@ opt = parser.parse_args()
 
 
 def init():
-    dataset_folder = opt.dataset
-
     mode = opt.mode
     model = ImageDiffusion(
-        saved_output_folder=path.join(opt.output, 'unet')
+        saved_output_folder=opt.output
     )
     if mode == 'train':
-        # you can use this callback to upload new checkpoints to cloud storage
-        def on_checkpoint_saved(epoch, file):
-            print(f'A new checkpoint ({epoch}) was saved at {file}')
-
         model.train(
-            dataset_folder=dataset_folder,
-            epochs=opt.epochs,
-            output_folder=opt.output,
-            on_checkpoint_saved=on_checkpoint_saved
+            dataset_folder=opt.dataset,
+            training_steps=opt.training_steps,
         )
     elif mode == 'generate':
         [
